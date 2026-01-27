@@ -66,26 +66,6 @@ fraudguard-project/
 └── README.md
 ```
 
-## Entwicklungsablauf
-
-### Woche 1: Setup & Rules
-- [x] Projekt-Setup
-- [ ] Dataset Download & EDA
-- [ ] Rule Engine implementieren
-
-### Woche 2: ML Training
-- [ ] Feature Engineering
-- [ ] XGBoost Training
-- [ ] Evaluation & Vergleich
-
-### Woche 3: Dashboard
-- [ ] Streamlit App Setup
-- [ ] 4 Tabs implementieren
-
-### Woche 4: Finalisierung
-- [ ] Dokumentation
-- [ ] Präsentation
-
 ## Quick Start
 
 ```bash
@@ -109,7 +89,3 @@ streamlit run app.py
 - 1.3M Transaktionen
 - 0.6% Fraud Rate
 - Features: Zeit, Betrag, Geo, Kunde, Händler
-
-## Kontakt
-
-Julian - [Email]
