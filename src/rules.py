@@ -136,26 +136,33 @@ class FraudRuleEngine:
         # Nur wenn vorherige Transaktion existiert
         mask = df['prev_lat'].notna()
         
+        # Initialize columns
+        df['distance_to_prev'] = 0.0
+        df['time_diff_hours'] = 0.0
+        df['velocity_kmh'] = 0.0
+        
         # Berechne Distance (Haversine)
-        df.loc[mask, 'distance_to_prev'] = df.loc[mask].apply(
-            lambda row: calculate_haversine_distance(
-                row['prev_lat'], row['prev_long'],
-                row['lat'], row['long']
-            ),
-            axis=1
-        )
-        
-        # Berechne Zeit-Differenz in Stunden
-        df.loc[mask, 'time_diff_hours'] = (
-            (df.loc[mask, 'trans_datetime'] - df.loc[mask, 'prev_time']).dt.total_seconds() / 3600
-        )
-        
-        # Berechne Velocity (km/h)
-        # Nur wenn time_diff > 0 (nicht exakt gleiche Zeit)
-        velocity_mask = mask & (df['time_diff_hours'] > 0)
-        df.loc[velocity_mask, 'velocity_kmh'] = (
-            df.loc[velocity_mask, 'distance_to_prev'] / df.loc[velocity_mask, 'time_diff_hours']
-        )
+        if mask.sum() > 0:
+            df.loc[mask, 'distance_to_prev'] = df.loc[mask].apply(
+                lambda row: calculate_haversine_distance(
+                    row['prev_lat'], row['prev_long'],
+                    row['lat'], row['long']
+                ),
+                axis=1
+            )
+            
+            # Berechne Zeit-Differenz in Stunden
+            df.loc[mask, 'time_diff_hours'] = (
+                (df.loc[mask, 'trans_datetime'] - df.loc[mask, 'prev_time']).dt.total_seconds() / 3600
+            )
+            
+            # Berechne Velocity (km/h)
+            # Nur wenn time_diff > 0 (nicht exakt gleiche Zeit)
+            velocity_mask = mask & (df['time_diff_hours'] > 0)
+            if velocity_mask.sum() > 0:
+                df.loc[velocity_mask, 'velocity_kmh'] = (
+                    df.loc[velocity_mask, 'distance_to_prev'] / df.loc[velocity_mask, 'time_diff_hours']
+                )
         
         # Regel: Velocity >500 km/h (unmöglich!)
         df['rule_geographic_impossible'] = (df['velocity_kmh'] > 500).fillna(0).astype(int)
@@ -206,19 +213,21 @@ class FraudRuleEngine:
         Regel 5: Out-of-State
         Transaktion in anderem State als üblich für diesen User
         """
-        # Häufigster State pro User
-        user_home_state = df.groupby('cc_num')['state'].agg(
-            lambda x: x.mode()[0] if len(x.mode()) > 0 else None
-        ).to_dict()
+        # Sortiere nach Zeit
+        df = df.sort_values(['cc_num', 'trans_datetime']).reset_index(drop=True)
         
-        # Map zurück
-        df['home_state'] = df['cc_num'].map(user_home_state)
+        # Für jeden User: häufigster State BISHER (expanding)
+        # Simplified: nehme vorherigen State
+        df['prev_state'] = df.groupby('cc_num')['state'].shift(1)
         
-        # Regel: Aktueller State != Home State
-        df['rule_out_of_state'] = (df['state'] != df['home_state']).astype(int)
+        # Regel: State hat sich geändert
+        df['rule_out_of_state'] = (
+            (df['state'] != df['prev_state']) & 
+            (df['prev_state'].notna())
+        ).astype(int)
         
         # Cleanup
-        df = df.drop('home_state', axis=1)
+        df = df.drop('prev_state', axis=1)
         
         triggered = df['rule_out_of_state'].sum()
         print(f"  Rule 5 (Out-of-State): {triggered:,} triggered")
