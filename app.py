@@ -397,12 +397,12 @@ def render_lookup(df):
     if 'random_txn_id' not in st.session_state:
         st.session_state.random_txn_id = None
     
-    # Show available transaction IDs
-    st.info(f"💡 **Available Transaction IDs:** {df['trans_num'].min():,} to {df['trans_num'].max():,}")
+    # Show available indices (use index instead of trans_num)
+    st.info(f"💡 **Available Indices:** 0 to {len(df)-1:,} (total {len(df):,} transactions)")
     
-    # Example IDs
-    example_ids = df.sample(5)['trans_num'].tolist()
-    st.caption(f"Try these examples: {', '.join([str(x) for x in example_ids])}")
+    # Example indices
+    example_indices = df.sample(5).index.tolist()
+    st.caption(f"Try these examples: {', '.join([str(x) for x in example_indices])}")
     
     # Search Input
     col1, col2 = st.columns([3, 1])
@@ -411,29 +411,29 @@ def render_lookup(df):
         # Use session state value if random button was clicked
         default_value = str(st.session_state.random_txn_id) if st.session_state.random_txn_id else ""
         
-        txn_id = st.text_input(
-            "Enter Transaction Number",
+        txn_idx = st.text_input(
+            "Enter Transaction Index (0-based)",
             value=default_value,
-            placeholder="e.g., 1000000",
-            help="Enter a transaction number to see detailed analysis"
+            placeholder="e.g., 1234",
+            help="Enter an index number (0 to {}) to see detailed analysis".format(len(df)-1)
         )
     
     with col2:
-        st.write("")  # Spacing
-        if st.button("🎲 Random Transaction"):
-            random_txn = df.sample(1)['trans_num'].iloc[0]
-            st.session_state.random_txn_id = random_txn
+        # Add vertical spacing to align button with input field
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🎲 Random Transaction", use_container_width=True):
+            random_idx = df.sample(1).index[0]
+            st.session_state.random_txn_id = random_idx
             st.rerun()
     
-    if txn_id:
+    if txn_idx:
         try:
-            txn_id_int = int(txn_id)
-            txn = df[df['trans_num'] == txn_id_int]
+            txn_idx_int = int(txn_idx)
             
-            if len(txn) == 0:
-                st.error(f"❌ Transaction {txn_id} not found in dataset")
+            if txn_idx_int < 0 or txn_idx_int >= len(df):
+                st.error(f"❌ Index {txn_idx_int} out of range. Please use 0 to {len(df)-1}")
             else:
-                txn = txn.iloc[0]
+                txn = df.iloc[txn_idx_int]
                 
                 # Ground Truth
                 st.markdown("---")
@@ -448,6 +448,9 @@ def render_lookup(df):
                 
                 with col2:
                     st.markdown("### Transaction Info")
+                    st.write(f"**Index:** {txn_idx_int}")
+                    if 'trans_num' in txn.index:
+                        st.write(f"**ID:** {str(txn['trans_num'])[:16]}...")
                     st.write(f"**Amount:** ${txn['amt']:.2f}")
                     st.write(f"**Category:** {txn['category']}")
                     if 'trans_datetime' in txn.index:
@@ -509,7 +512,7 @@ def render_lookup(df):
                         st.write(f"**Fraud Probability:** {prob:.1%}")
                         
                         # Probability bar
-                        st.progress(prob)
+                        st.progress(float(prob))
                         
                         if 'ml_risk_level' in txn.index:
                             risk = txn['ml_risk_level']
@@ -537,7 +540,7 @@ def render_lookup(df):
                     st.error("❌ Both approaches failed - challenging transaction")
         
         except ValueError:
-            st.error("Please enter a valid numeric transaction number")
+            st.error("Please enter a valid numeric index")
 
 
 # ============================================================================
