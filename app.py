@@ -393,12 +393,27 @@ def render_lookup(df):
     st.header("🔍 Transaction Lookup")
     st.write("Analyze how each approach handles individual transactions")
     
+    # Initialize session state for random transaction
+    if 'random_txn_id' not in st.session_state:
+        st.session_state.random_txn_id = None
+    
+    # Show available transaction IDs
+    st.info(f"💡 **Available Transaction IDs:** {df['trans_num'].min():,} to {df['trans_num'].max():,}")
+    
+    # Example IDs
+    example_ids = df.sample(5)['trans_num'].tolist()
+    st.caption(f"Try these examples: {', '.join([str(x) for x in example_ids])}")
+    
     # Search Input
     col1, col2 = st.columns([3, 1])
     
     with col1:
+        # Use session state value if random button was clicked
+        default_value = str(st.session_state.random_txn_id) if st.session_state.random_txn_id else ""
+        
         txn_id = st.text_input(
             "Enter Transaction Number",
+            value=default_value,
             placeholder="e.g., 1000000",
             help="Enter a transaction number to see detailed analysis"
         )
@@ -407,7 +422,7 @@ def render_lookup(df):
         st.write("")  # Spacing
         if st.button("🎲 Random Transaction"):
             random_txn = df.sample(1)['trans_num'].iloc[0]
-            txn_id = str(random_txn)
+            st.session_state.random_txn_id = random_txn
             st.rerun()
     
     if txn_id:
