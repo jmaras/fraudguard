@@ -22,7 +22,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     
     df = df.copy()
     
-    # === 1. Zeit-Features ===
+    # 1. Zeit-Features
     print("  1. Time features...")
     df = _create_time_features(df)
     
