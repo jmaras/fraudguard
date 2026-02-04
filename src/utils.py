@@ -1,6 +1,6 @@
 """
 FraudGuard - Utility Functions
-Hilfsfunktionen für das gesamte Projekt
+Helper functions for the entire project
 """
 
 import pandas as pd
@@ -11,11 +11,11 @@ from datetime import datetime
 
 def load_data(filepath: str, nrows: int = None) -> pd.DataFrame:
     """
-    Lädt CSV-Daten
+     Loads CSV data
     
     Args:
-        filepath: Pfad zur CSV-Datei
-        nrows: Optional - Anzahl Zeilen zum Laden (für schnelles Testen)
+        filepath: Path to the CSV file
+        nrows: Optional – number of rows to load (for quick testing)
     
     Returns:
         DataFrame
@@ -35,18 +35,18 @@ def temporal_train_test_split(
     train_ratio: float = 0.7
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """
-    Temporal Split - wichtig für Zeitreihen!
-    Erste 70% = Train, letzte 30% = Test
+   Temporal train/test split – important for time series data
+    First 70% = training set, last 30% = test set
     
     Args:
         df: DataFrame
-        time_col: Name der Zeitspalte
-        train_ratio: Anteil Training (default 0.7)
+        time_col: Name of the time column
+        train_ratio: Proportion of training data (default 0.7)
     
     Returns:
         train_df, test_df
     """
-    # Nach Zeit sortieren
+    # Sort by time
     df = df.sort_values(time_col).reset_index(drop=True)
     
     split_idx = int(len(df) * train_ratio)
@@ -67,20 +67,20 @@ def calculate_haversine_distance(
     lon2: float
 ) -> float:
     """
-    Berechnet Distanz zwischen zwei Geo-Koordinaten in km
-    (Haversine Formula)
+    Calculates the distance between two geographic coordinates in kilometers
+    (Haversine formula)
     
     Args:
-        lat1, lon1: Koordinaten Punkt 1
-        lat2, lon2: Koordinaten Punkt 2
+        lat1, lon1: Coordinates of point 1
+        lat2, lon2: Coordinates of point 2
     
     Returns:
-        Distanz in Kilometern
+        Distance in kilometers
     """
-    # Radius der Erde in km
+    # Radius of the Earth in kilometers
     R = 6371.0
     
-    # Konvertiere zu Radians
+    # Convert degrees to radians
     lat1_rad = np.radians(lat1)
     lon1_rad = np.radians(lon1)
     lat2_rad = np.radians(lat2)
@@ -100,11 +100,11 @@ def calculate_haversine_distance(
 
 def print_fraud_stats(df: pd.DataFrame, label_col: str = 'is_fraud'):
     """
-    Gibt Fraud-Statistiken aus
+    Prints fraud statistics
     
     Args:
         df: DataFrame
-        label_col: Name der Label-Spalte
+        label_col: Name of the label column
     """
     total = len(df)
     fraud_count = df[label_col].sum()
@@ -121,12 +121,12 @@ def print_fraud_stats(df: pd.DataFrame, label_col: str = 'is_fraud'):
 
 
 def format_currency(amount: float) -> str:
-    """Formatiert Betrag als Currency"""
+    """Formats a numeric amount as currency"""
     return f"${amount:,.2f}"
 
 
 def format_percentage(value: float) -> str:
-    """Formatiert als Prozent"""
+    """Formats a numeric value as a percentage"""
     return f"{value:.2%}"
 
 
@@ -135,6 +135,6 @@ if __name__ == "__main__":
     print("FraudGuard Utils - Ready!")
     
     # Test Haversine
-    # Portland, OR zu Miami, FL
+    # Portland, OR to Miami, FL
     distance = calculate_haversine_distance(45.5152, -122.6784, 25.7617, -80.1918)
     print(f"Portland → Miami: {distance:.0f} km")

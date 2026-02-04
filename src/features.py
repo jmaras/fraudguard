@@ -1,6 +1,5 @@
 """
-FraudGuard - Feature Engineering (SIMPLIFIED)
-Erstellt essenzielle Features für ML-Modell
+FraudGuard – Feature Engineering (SIMPLIFIED). Creates essential features for the ML model
 """
 
 import pandas as pd
@@ -10,27 +9,21 @@ from typing import List
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Erstellt Features für ML-Training (vereinfacht)
-    
-    Args:
-        df: DataFrame mit Transaktionen
-        
-    Returns:
-        DataFrame mit zusätzlichen Features
+    Creates features for ML training
     """
     print("Engineering features for ML...")
     
     df = df.copy()
     
-    # 1. Zeit-Features
+    # 1. Time features
     print("  1. Time features...")
     df = _create_time_features(df)
     
-    # === 2. Aggregierte Features ===
+    # === 2. Aggregated features ===
     print("  2. Aggregated features...")
     df = _create_aggregated_features(df)
     
-    # === 3. Kategorische Features ===
+    # === 3. Categorical features ===
     print("  3. Categorical features...")
     df = _create_categorical_features(df)
     
@@ -40,9 +33,9 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _create_time_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Zeit-basierte Features"""
+    """Time-based features"""
     
-    # Parse datetime falls noch nicht vorhanden
+    # Parse datetime
     if 'trans_datetime' not in df.columns:
         df['trans_datetime'] = pd.to_datetime(df['trans_date_trans_time'])
     
@@ -65,10 +58,10 @@ def _create_time_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Aggregierte Features (pro User/Karte)
+    Aggregated features (per user/card)
     """
     
-    # Sortiere nach Zeit
+    # Sort by time
     df = df.sort_values(['cc_num', 'trans_datetime']).reset_index(drop=True)
     
     # === Transaction Count ===
@@ -76,12 +69,12 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     
     # === Amount Features ===
     
-    # Durchschnitt aller bisherigen Transaktionen (expanding)
+    # Average of all previous transactions
     df['avg_amount_expanding'] = df.groupby('cc_num')['amt'].transform(
         lambda x: x.expanding(min_periods=1).mean()
     )
     
-    # Std Dev (expanding)
+    # Standard deviation
     df['std_amount_expanding'] = df.groupby('cc_num')['amt'].transform(
         lambda x: x.expanding(min_periods=1).std()
     ).fillna(0)
@@ -91,7 +84,7 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     # Amount vs. User Average
     df['amount_vs_avg_ratio'] = df['amt'] / (df['avg_amount_expanding'] + 1)
     
-    # Z-Score (wie viele StdDevs entfernt?)
+    # Z-score (how many standard deviations away?)
     df['amount_zscore'] = (
         (df['amt'] - df['avg_amount_expanding']) / 
         (df['std_amount_expanding'] + 1)
@@ -101,20 +94,20 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _create_categorical_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Kategorische Features encoding"""
+    """Categorical feature encoding"""
     
     # === Gender ===
     df['gender_M'] = (df['gender'] == 'M').astype(int)
     
-    # === State Frequency Encoding ===
+    # === State frequency encoding ===
     state_freq = df['state'].value_counts() / len(df)
     df['state_frequency'] = df['state'].map(state_freq)
     
-    # === Category Frequency Encoding ===
+    # === Category frequency encoding ===
     category_freq = df['category'].value_counts() / len(df)
     df['category_frequency'] = df['category'].map(category_freq)
     
-    # === City Population (Log Transform) ===
+    # === City population (Log Transform) ===
     df['city_pop_log'] = np.log1p(df['city_pop'])
     
     # === Age ===
@@ -128,19 +121,12 @@ def _create_categorical_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[str]:
     """
-    Wählt Features für ML-Training aus (vereinfacht)
-    
-    Args:
-        df: DataFrame mit allen Features
-        include_rules: Ob Regel-Features inkludiert werden sollen
-    
-    Returns:
-        Liste von Feature-Namen
+    Selects features for ML training (simplified)
     """
     
     features = []
     
-    # === Base Features ===
+    # === Base features ===
     base_features = [
         'amt',
         'hour',
@@ -151,7 +137,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in base_features if f in df.columns])
     
-    # === Aggregated Features ===
+    # === Aggregated features ===
     agg_features = [
         'txn_count_total',
         'avg_amount_expanding',
@@ -161,7 +147,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in agg_features if f in df.columns])
     
-    # === Categorical Features ===
+    # === Categorical features ===
     cat_features = [
         'gender_M',
         'state_frequency',
@@ -171,7 +157,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in cat_features if f in df.columns])
     
-    # === Rule Features (optional) ===
+    # === Rule features ===
     if include_rules:
         rule_features = [
             'rule_high_frequency',
@@ -197,17 +183,11 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
 
 def prepare_for_ml(df: pd.DataFrame, feature_cols: List[str], label_col: str = 'is_fraud'):
     """
-    Bereitet DataFrame für ML vor
-    
-    Args:
-        df: DataFrame
-        feature_cols: Liste von Feature-Namen
-        label_col: Name der Label-Spalte
-    
+    Prepares DataFrame for ML    
     Returns:
         X, y (Features, Labels)
     """
-    # Nur vorhandene Features
+    # Only existing features
     available_features = [col for col in feature_cols if col in df.columns]
     
     missing = set(feature_cols) - set(available_features)
@@ -217,7 +197,7 @@ def prepare_for_ml(df: pd.DataFrame, feature_cols: List[str], label_col: str = '
     # Features
     X = df[available_features].copy()
     
-    # Fill NaN mit 0
+    # Fill NaN with 0
     X = X.fillna(0)
     
     # Label
