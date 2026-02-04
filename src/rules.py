@@ -1,6 +1,6 @@
 """
 FraudGuard - Rule Engine (SIMPLIFIED)
-5 Business-Regeln zur Betrugserkennung
+5 business rules for fraud detection
 """
 
 import pandas as pd
@@ -10,18 +10,18 @@ from typing import Dict
 
 class FraudRuleEngine:
     """
-    Regelbasiertes Fraud Detection System
-    
-    5 Regeln:
-    1. High Frequency: >5 Transaktionen pro Stunde
-    2. Night Transaction: 2-5 Uhr morgens
-    3. High Amount: >3x User-Durchschnitt
-    4. Round Amount: Verdächtig runde Beträge
-    5. Risky Category: Kategorien mit hoher Fraud-Rate
+    Rule-based fraud detection system
+
+    5 rules:
+    Rule 1: High Frequency
+    Rule 2: Night Transaction
+    Rule 3: High Amount
+    Rule 4: Round Amount
+    Rule 5: Risky Category
     """
     
     def __init__(self):
-        # Kategorien mit historisch hoher Fraud-Rate
+        # Categories with historically high fraud rates
         self.risky_categories = [
             'shopping_net',
             'misc_net',
@@ -30,7 +30,7 @@ class FraudRuleEngine:
             'gas_transport'
         ]
         
-        # Verdächtig runde Beträge
+        # Suspiciously round transaction amounts
         self.suspicious_amounts = [
             50, 100, 200, 250, 500, 750, 1000, 
             1500, 2000, 2500, 5000
@@ -39,20 +39,20 @@ class FraudRuleEngine:
     
     def apply_all_rules(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Wendet alle 5 Regeln auf DataFrame an
+         Applies all 5 fraud detection rules to the DataFrame
         
         Args:
-            df: DataFrame mit Transaktionen
+            df: DataFrame containing transaction data
             
         Returns:
-            DataFrame mit zusätzlichen Regel-Spalten
+            DataFrame with additional rule-related columns
         """
         print("Applying fraud detection rules...")
         
-        # Kopie erstellen
+        # Create a copy to avoid modifying the original DataFrame
         df = df.copy()
         
-        # Parse Zeit (falls noch nicht vorhanden)
+        # Parse transaction time
         if 'trans_datetime' not in df.columns:
             df['trans_datetime'] = pd.to_datetime(df['trans_date_trans_time'])
             df['hour'] = df['trans_datetime'].dt.hour
@@ -72,11 +72,11 @@ class FraudRuleEngine:
         # Regel 5: Risky Category
         df = self._rule_risky_category(df)
         
-        # Zähle getriggerte Regeln
+        # Count how many rules were triggered per transaction
         rule_cols = [col for col in df.columns if col.startswith('rule_')]
         df['rules_triggered'] = df[rule_cols].sum(axis=1)
         
-        # Finale Entscheidung: ≥2 Regeln → Fraud
+        # Final decision: fraud if at least 2 rules are triggered
         df['rule_based_prediction'] = (df['rules_triggered'] >= 2).astype(int)
         
         print(f"✓ Applied {len(rule_cols)} rules")
@@ -87,22 +87,22 @@ class FraudRuleEngine:
     
     def _rule_high_frequency(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Regel 1: High Frequency
-        >5 Transaktionen pro Stunde von derselben Karte
+        Rule 1: High Frequency
+        More than 5 transactions per hour from the same card
         """
-        # Runde Zeit auf Stunde
+        # Round transaction time down to the hour
         df['hour_bucket'] = df['trans_datetime'].dt.floor('H')
         
-        # Zähle Transaktionen pro cc_num + Stunde
+        # Count transactions per card and hour
         txn_counts = df.groupby(['cc_num', 'hour_bucket']).size().reset_index(name='txn_count_1h')
         
-        # Merge zurück
+        # Merge counts back into the main DataFrame
         df = df.merge(txn_counts, on=['cc_num', 'hour_bucket'], how='left')
         
-        # Regel: >5 Transaktionen
+        # Rule condition: more than 5 transactions
         df['rule_high_frequency'] = (df['txn_count_1h'] > 5).astype(int)
         
-        # Cleanup
+        # Remove temporary column
         df = df.drop('hour_bucket', axis=1)
         
         triggered = df['rule_high_frequency'].sum()
@@ -113,8 +113,8 @@ class FraudRuleEngine:
     
     def _rule_night_transaction(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Regel 2: Night Transaction
-        Transaktionen zwischen 2-5 Uhr morgens sind verdächtig
+        Rule 2: Night Transaction
+        Transactions between 2–5 AM are considered suspicious
         """
         df['rule_night_transaction'] = (
             (df['hour'] >= 2) & (df['hour'] < 5)
@@ -128,13 +128,13 @@ class FraudRuleEngine:
     
     def _rule_high_amount(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Regel 3: High Amount
-        Betrag >3x Durchschnitt des Users
+       Rule 3: High Amount
+        Transaction amount greater than 3x the user's average amount
         """
-        # Berechne User-Durchschnitt (pro cc_num)
+        # Calculate user average transaction amount (per card)
         user_avg = df.groupby('cc_num')['amt'].transform('mean')
         
-        # Regel: >3x Durchschnitt
+        # Rule condition: amount greater than 3x average
         df['rule_high_amount'] = (df['amt'] > 3 * user_avg).astype(int)
         
         triggered = df['rule_high_amount'].sum()
@@ -145,8 +145,8 @@ class FraudRuleEngine:
     
     def _rule_round_amount(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Regel 4: Round Amount
-        Verdächtig runde Beträge (z.B. genau 100, 500, 1000)
+        Rule 4: Round Amount
+        Suspiciously round transaction amounts (e.g. exactly 100, 500, 1000)
         """
         df['rule_round_amount'] = df['amt'].isin(self.suspicious_amounts).astype(int)
         
@@ -158,8 +158,8 @@ class FraudRuleEngine:
     
     def _rule_risky_category(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Regel 5: Risky Category
-        Kategorien mit historisch hoher Fraud-Rate
+        Rule 5: Risky Category
+        Merchant categories with historically high fraud rates
         """
         df['rule_risky_category'] = df['category'].isin(self.risky_categories).astype(int)
         
@@ -171,10 +171,10 @@ class FraudRuleEngine:
     
     def get_rule_explanations(self) -> Dict[str, str]:
         """
-        Gibt Erklärungen für jede Regel zurück
+       Returns human-readable explanations for each rule
         
         Returns:
-            Dictionary mit Regel-Namen und Erklärungen
+            Dictionary mapping rule names to explanations
         """
         return {
             'rule_high_frequency': 'More than 5 transactions per hour',
