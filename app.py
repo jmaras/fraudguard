@@ -1,6 +1,6 @@
 """
-FraudGuard - Streamlit Dashboard (SIMPLIFIED)
-Vergleich: Rule-Based vs. ML-Based Fraud Detection
+FraudGuard - Streamlit Dashboard
+Rule-Based vs. ML-Based Fraud Detection
 """
 
 import streamlit as st
@@ -38,17 +38,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ============================================================================
 # DATA LOADING
-# ============================================================================
 
 @st.cache_data
 def load_data():
-    """Load predictions"""
     try:
         df = pd.read_csv('data/processed/predictions_comparison.csv')
         
-        # Parse datetime
         if 'trans_datetime' in df.columns:
             df['trans_datetime'] = pd.to_datetime(df['trans_datetime'])
         if 'trans_date_trans_time' in df.columns:
@@ -60,24 +56,20 @@ def load_data():
         return None
 
 
-# ============================================================================
 # HEADER
-# ============================================================================
 
 def render_header():
     """Render dashboard header"""
-    st.markdown('<div class="main-header">🛡️ FraudGuard</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">FraudGuard</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Fraud Detection System - Rule-Based vs. ML Comparison</div>', 
                 unsafe_allow_html=True)
     st.markdown("---")
 
 
-# ============================================================================
 # TAB 1: OVERVIEW
-# ============================================================================
 
 def render_overview(df):
-    """Overview Tab - SIMPLIFIED"""
+    """Overview Tab"""
     st.header("📊 Overview")
     
     # KPI Cards
@@ -108,7 +100,7 @@ def render_overview(df):
     
     st.markdown("---")
     
-    # Fraud Distribution Pie Chart
+    # Fraud Distribution
     st.subheader("Fraud Distribution")
     
     fraud_dist = df['is_fraud'].value_counts()
@@ -119,22 +111,16 @@ def render_overview(df):
         hole=0.4,
         marker=dict(colors=['#2ecc71', '#e74c3c'])
     )])
-    fig.update_layout(
-        height=400,
-        showlegend=True
-    )
+    fig.update_layout(height=400, showlegend=True)
     st.plotly_chart(fig, use_container_width=True)
 
 
-# ============================================================================
 # TAB 2: COMPARISON
-# ============================================================================
 
 def render_comparison(df):
-    """Comparison Tab - CORE"""
-    st.header("🔬 Rule-Based vs. ML-Only Comparison")
+    """Comparison Tab"""
+    st.header("Rule-Based vs. ML-Only Comparison")
     
-    # Calculate Metrics
     y_true = df['is_fraud']
     
     # Rule-Based
@@ -150,9 +136,8 @@ def render_comparison(df):
     f1_ml = f1_score(y_true, y_pred_ml, zero_division=0)
     
     # Performance Metrics
-    st.subheader("📈 Performance Metrics")
+    st.subheader("Performance Metrics")
     
-    # Create comparison dataframe
     comparison = pd.DataFrame({
         'Metric': ['Precision', 'Recall', 'F1-Score'],
         'Rule-Based': [f"{precision_rules:.1%}", f"{recall_rules:.1%}", f"{f1_rules:.1%}"],
@@ -161,14 +146,13 @@ def render_comparison(df):
     
     st.dataframe(comparison, use_container_width=True, hide_index=True)
     
-    # Improvement
     improvement = ((f1_ml - f1_rules) / f1_rules * 100) if f1_rules > 0 else 0
     st.success(f"**✅ ML improves F1-Score by {improvement:.0f}% over Rule-Based!**")
     
     st.markdown("---")
     
-    # Bar Chart Comparison
-    st.subheader("📊 Metrics Comparison")
+    # Bar Chart
+    st.subheader("Metrics Comparison")
     
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -194,7 +178,7 @@ def render_comparison(df):
     st.markdown("---")
     
     # Confusion Matrices
-    st.subheader("🎯 Confusion Matrices")
+    st.subheader("Confusion Matrices")
     
     col1, col2 = st.columns(2)
     
@@ -235,23 +219,18 @@ def render_comparison(df):
         st.caption(f"TN: {cm_ml[0,0]:,} | FP: {cm_ml[0,1]:,} | FN: {cm_ml[1,0]:,} | TP: {cm_ml[1,1]:,}")
 
 
-# ============================================================================
 # TAB 3: TRANSACTION LOOKUP
-# ============================================================================
 
 def render_lookup(df):
     """Transaction Lookup Tab"""
     st.header("🔍 Transaction Lookup")
     st.write("Analyze how each approach handles individual transactions")
     
-    # Initialize session state
     if 'random_txn_id' not in st.session_state:
         st.session_state.random_txn_id = None
     
-    # Show available indices
-    st.info(f"💡 **Available Indices:** 0 to {len(df)-1:,} (total {len(df):,} transactions)")
+    st.info(f"**Available Indices:** 0 to {len(df)-1:,} (total {len(df):,} transactions)")
     
-    # Example indices
     example_indices = df.sample(5).index.tolist()
     st.caption(f"Try these examples: {', '.join([str(x) for x in example_indices])}")
     
@@ -279,7 +258,7 @@ def render_lookup(df):
             txn_idx_int = int(txn_idx)
             
             if txn_idx_int < 0 or txn_idx_int >= len(df):
-                st.error(f"❌ Index out of range (0 to {len(df)-1})")
+                st.error(f"Index out of range (0 to {len(df)-1})")
             else:
                 txn = df.iloc[txn_idx_int]
                 
@@ -290,7 +269,7 @@ def render_lookup(df):
                 with col1:
                     st.markdown("### Ground Truth")
                     if txn['is_fraud'] == 1:
-                        st.error("🚨 **ACTUAL FRAUD**")
+                        st.error("❌ **ACTUAL FRAUD**")
                     else:
                         st.success("✅ **LEGITIMATE**")
                 
@@ -349,16 +328,14 @@ def render_lookup(df):
             st.error("Please enter a valid numeric index")
 
 
-# ============================================================================
 # TAB 4: METHODOLOGY
-# ============================================================================
 
 def render_methodology(df):
-    """Methodology Tab - SIMPLIFIED"""
-    st.header("📚 Methodology")
+    """Methodology Tab"""
+    st.header("Methodology")
     
     # Overview
-    st.subheader("🎯 Project Overview")
+    st.subheader("Project Overview")
     st.write("""
     FraudGuard compares two approaches to credit card fraud detection:
     1. **Rule-Based System**: Business rules based on domain knowledge
@@ -368,7 +345,7 @@ def render_methodology(df):
     st.markdown("---")
     
     # Dataset
-    st.subheader("📊 Dataset")
+    st.subheader("Dataset")
     col1, col2 = st.columns(2)
     
     with col1:
@@ -384,7 +361,7 @@ def render_methodology(df):
     st.markdown("---")
     
     # Rule-Based
-    st.subheader("🔧 Rule-Based Approach")
+    st.subheader("Rule-Based Approach")
     st.write("""
     **5 Business Rules:**
     - High Frequency (>5 transactions/hour)
@@ -396,8 +373,7 @@ def render_methodology(df):
     **Decision:** ≥2 rules triggered → Flag as Fraud
     """)
     
-    # Example Code
-    with st.expander("📝 Code Example"):
+    with st.expander("Code Example"):
         st.code("""
 # Apply rules
 engine = FraudRuleEngine()
@@ -410,7 +386,7 @@ df['fraud'] = (df['rules_triggered'] >= 2)
     st.markdown("---")
     
     # ML Approach
-    st.subheader("🤖 ML-Based Approach")
+    st.subheader("ML-Based Approach")
     st.write("""
     **Model:** XGBoost Classifier
     
@@ -419,8 +395,7 @@ df['fraud'] = (df['rules_triggered'] >= 2)
     **Training:** SMOTE for class imbalance, StandardScaler
     """)
     
-    # Example Code
-    with st.expander("📝 Code Example"):
+    with st.expander("Code Example"):
         st.code("""
 # Train model
 model = XGBClassifier()
@@ -433,7 +408,7 @@ predictions = model.predict(X_test)
     st.markdown("---")
     
     # Comparison
-    st.subheader("⚖️ Key Differences")
+    st.subheader("Key Differences")
     
     comparison_table = pd.DataFrame({
         'Aspect': ['Transparency', 'Adaptability', 'Performance'],
@@ -451,13 +426,11 @@ predictions = model.predict(X_test)
 def main():
     """Main application"""
     
-    # Load data
     df = load_data()
     
     if df is None:
         st.stop()
     
-    # Header
     render_header()
     
     # Sidebar
