@@ -1,11 +1,9 @@
 """
-FraudGuard - Rule Engine (SIMPLIFIED)
+FraudGuard - Rule Engine
 5 business rules for fraud detection
 """
 
 import pandas as pd
-import numpy as np
-from typing import Dict
 
 
 class FraudRuleEngine:
@@ -39,13 +37,7 @@ class FraudRuleEngine:
     
     def apply_all_rules(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-         Applies all 5 fraud detection rules to the DataFrame
-        
-        Args:
-            df: DataFrame containing transaction data
-            
-        Returns:
-            DataFrame with additional rule-related columns
+        Applies all 5 fraud detection rules to the DataFrame
         """
         print("Applying fraud detection rules...")
         
@@ -57,19 +49,19 @@ class FraudRuleEngine:
             df['trans_datetime'] = pd.to_datetime(df['trans_date_trans_time'])
             df['hour'] = df['trans_datetime'].dt.hour
         
-        # Regel 1: High Frequency
+        # Rule 1: High Frequency
         df = self._rule_high_frequency(df)
         
-        # Regel 2: Night Transaction
+        # Rule 2: Night Transaction
         df = self._rule_night_transaction(df)
         
-        # Regel 3: High Amount
+        # Rule 3: High Amount
         df = self._rule_high_amount(df)
         
-        # Regel 4: Round Amount
+        # Rule 4: Round Amount
         df = self._rule_round_amount(df)
         
-        # Regel 5: Risky Category
+        # Rule 5: Risky Category
         df = self._rule_risky_category(df)
         
         # Count how many rules were triggered per transaction
@@ -128,7 +120,7 @@ class FraudRuleEngine:
     
     def _rule_high_amount(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-       Rule 3: High Amount
+        Rule 3: High Amount
         Transaction amount greater than 3x the user's average amount
         """
         # Calculate user average transaction amount (per card)
@@ -168,13 +160,9 @@ class FraudRuleEngine:
         
         return df
     
-    
     def get_rule_explanations(self) -> Dict[str, str]:
         """
-       Returns human-readable explanations for each rule
-        
-        Returns:
-            Dictionary mapping rule names to explanations
+        Returns human-readable explanations for each rule
         """
         return {
             'rule_high_frequency': 'More than 5 transactions per hour',
@@ -186,7 +174,7 @@ class FraudRuleEngine:
 
 
 if __name__ == "__main__":
-    print("FraudGuard Rule Engine (Simplified)")
+    print("FraudGuard Rule Engine")
     print("=" * 50)
     
     engine = FraudRuleEngine()

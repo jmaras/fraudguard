@@ -1,5 +1,5 @@
 """
-FraudGuard – Feature Engineering (SIMPLIFIED). Creates essential features for the ML model
+FraudGuard - Feature Engineering (SIMPLIFIED). Creates essential features for the ML model
 """
 
 import pandas as pd
@@ -19,11 +19,11 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     print("  1. Time features...")
     df = _create_time_features(df)
     
-    # === 2. Aggregated features ===
+    # 2. Aggregated features
     print("  2. Aggregated features...")
     df = _create_aggregated_features(df)
     
-    # === 3. Categorical features ===
+    # 3. Categorical features
     print("  3. Categorical features...")
     df = _create_categorical_features(df)
     
@@ -64,10 +64,10 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     # Sort by time
     df = df.sort_values(['cc_num', 'trans_datetime']).reset_index(drop=True)
     
-    # === Transaction Count ===
+    # Transaction Count
     df['txn_count_total'] = df.groupby('cc_num').cumcount() + 1
     
-    # === Amount Features ===
+    # AMOUNT FEATURES
     
     # Average of all previous transactions
     df['avg_amount_expanding'] = df.groupby('cc_num')['amt'].transform(
@@ -79,7 +79,7 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
         lambda x: x.expanding(min_periods=1).std()
     ).fillna(0)
     
-    # === Deviation Features ===
+    # DEVIATION FEATURES
     
     # Amount vs. User Average
     df['amount_vs_avg_ratio'] = df['amt'] / (df['avg_amount_expanding'] + 1)
@@ -96,21 +96,21 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
 def _create_categorical_features(df: pd.DataFrame) -> pd.DataFrame:
     """Categorical feature encoding"""
     
-    # === Gender ===
+    # Gender
     df['gender_M'] = (df['gender'] == 'M').astype(int)
     
-    # === State frequency encoding ===
+    # State frequency encoding
     state_freq = df['state'].value_counts() / len(df)
     df['state_frequency'] = df['state'].map(state_freq)
     
-    # === Category frequency encoding ===
+    # Category frequency encoding
     category_freq = df['category'].value_counts() / len(df)
     df['category_frequency'] = df['category'].map(category_freq)
     
-    # === City population (Log Transform) ===
+    # City population (Log Transform)
     df['city_pop_log'] = np.log1p(df['city_pop'])
     
-    # === Age ===
+    # Age
     if 'dob' in df.columns:
         df['dob_datetime'] = pd.to_datetime(df['dob'])
         df['age'] = (df['trans_datetime'] - df['dob_datetime']).dt.days / 365.25
@@ -126,7 +126,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     
     features = []
     
-    # === Base features ===
+    # Base features
     base_features = [
         'amt',
         'hour',
@@ -137,7 +137,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in base_features if f in df.columns])
     
-    # === Aggregated features ===
+    # Aggregated features
     agg_features = [
         'txn_count_total',
         'avg_amount_expanding',
@@ -147,7 +147,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in agg_features if f in df.columns])
     
-    # === Categorical features ===
+    # Categorical features
     cat_features = [
         'gender_M',
         'state_frequency',
@@ -157,7 +157,7 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in cat_features if f in df.columns])
     
-    # === Rule features ===
+    # Rule features
     if include_rules:
         rule_features = [
             'rule_high_frequency',
