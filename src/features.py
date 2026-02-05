@@ -120,7 +120,7 @@ def _create_categorical_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[str]:
+def select_ml_features(df: pd.DataFrame) -> List[str]:
     """
     Selects features for ML training (simplified)
     """
@@ -158,26 +158,10 @@ def select_ml_features(df: pd.DataFrame, include_rules: bool = False) -> List[st
     ]
     features.extend([f for f in cat_features if f in df.columns])
     
-    # Rule features
-    if include_rules:
-        rule_features = [
-            'rule_high_frequency',
-            'rule_night_transaction',
-            'rule_high_amount',
-            'rule_round_amount',
-            'rule_risky_category',
-            'rules_triggered'
-        ]
-        features.extend([f for f in rule_features if f in df.columns])
-    
     # Remove duplicates
     features = list(dict.fromkeys(features))
     
     print(f"\nSelected {len(features)} features for ML:")
-    if include_rules:
-        print("  Mode: HYBRID (with rule features)")
-    else:
-        print("  Mode: ML-ONLY (without rule features)")
     
     return features
 
