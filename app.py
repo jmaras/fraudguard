@@ -419,9 +419,7 @@ predictions = model.predict(X_test)
     st.dataframe(comparison_table, use_container_width=True, hide_index=True)
 
 
-# ============================================================================
 # MAIN APP
-# ============================================================================
 
 def main():
     """Main application"""

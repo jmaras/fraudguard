@@ -4,6 +4,7 @@ FraudGuard - Rule Engine
 """
 
 import pandas as pd
+from typing import Dict
 
 
 class FraudRuleEngine:
@@ -176,10 +177,11 @@ class FraudRuleEngine:
 if __name__ == "__main__":
     print("FraudGuard Rule Engine")
     print("=" * 50)
-    
-    engine = FraudRuleEngine()
-    explanations = engine.get_rule_explanations()
-    
+    print("\nFunctions:")
+    print("  - FraudRuleEngine.apply_all_rules(df)")
     print("\nConfigured Rules:")
-    for i, (rule, explanation) in enumerate(explanations.items(), 1):
-        print(f"{i}. {rule}: {explanation}")
+    print("  1. High Frequency (>5 txn/hour)")
+    print("  2. Night Transaction (2-5 AM)")
+    print("  3. High Amount (>3x user avg)")
+    print("  4. Round Amount (suspicious amounts)")
+    print("  5. Risky Category (high-risk merchants)")

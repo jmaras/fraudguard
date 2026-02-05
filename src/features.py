@@ -1,5 +1,6 @@
 """
-FraudGuard - Feature Engineering (SIMPLIFIED). Creates essential features for the ML model
+FraudGuard - Feature Engineering
+Creates essential features for the ML model
 """
 
 import pandas as pd
