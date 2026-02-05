@@ -72,8 +72,8 @@ class FraudRuleEngine:
         # Final decision: fraud if at least 2 rules are triggered
         df['rule_based_prediction'] = (df['rules_triggered'] >= 2).astype(int)
         
-        print(f"✓ Applied {len(rule_cols)} rules")
-        print(f"  Transactions flagged (≥2 rules): {df['rule_based_prediction'].sum():,}")
+        print(f"✓ Applied {len(rule_cols)} rules\n")
+        print(f"  Transactions flagged (≥2 rules): {df['rule_based_prediction'].sum():,}\n")
         
         return df
     
