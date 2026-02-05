@@ -67,9 +67,7 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     
     # Transaction Count
     df['txn_count_total'] = df.groupby('cc_num').cumcount() + 1
-    
-    # AMOUNT FEATURES
-    
+        
     # Average of all previous transactions
     df['avg_amount_expanding'] = df.groupby('cc_num')['amt'].transform(
         lambda x: x.expanding(min_periods=1).mean()
@@ -79,17 +77,10 @@ def _create_aggregated_features(df: pd.DataFrame) -> pd.DataFrame:
     df['std_amount_expanding'] = df.groupby('cc_num')['amt'].transform(
         lambda x: x.expanding(min_periods=1).std()
     ).fillna(0)
-    
-    # DEVIATION FEATURES
-    
+        
     # Amount vs. User Average
     df['amount_vs_avg_ratio'] = df['amt'] / (df['avg_amount_expanding'] + 1)
-    
-    # Z-score (how many standard deviations away?)
-    df['amount_zscore'] = (
-        (df['amt'] - df['avg_amount_expanding']) / 
-        (df['std_amount_expanding'] + 1)
-    )
+
     
     return df
 
@@ -144,7 +135,6 @@ def select_ml_features(df: pd.DataFrame) -> List[str]:
         'avg_amount_expanding',
         'std_amount_expanding',
         'amount_vs_avg_ratio',
-        'amount_zscore'
     ]
     features.extend([f for f in agg_features if f in df.columns])
     

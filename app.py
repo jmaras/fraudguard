@@ -5,8 +5,6 @@ Rule-Based vs. ML-Based Fraud Detection
 
 import streamlit as st
 import pandas as pd
-import numpy as np
-import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
 
@@ -119,7 +117,7 @@ def render_overview(df):
 
 def render_comparison(df):
     """Comparison Tab"""
-    st.header("Rule-Based vs. ML-Only Comparison")
+    st.header("🔬 Rule-Based vs. ML Comparison")
     
     y_true = df['is_fraud']
     
@@ -141,7 +139,7 @@ def render_comparison(df):
     comparison = pd.DataFrame({
         'Metric': ['Precision', 'Recall', 'F1-Score'],
         'Rule-Based': [f"{precision_rules:.1%}", f"{recall_rules:.1%}", f"{f1_rules:.1%}"],
-        'ML-Only': [f"{precision_ml:.1%}", f"{recall_ml:.1%}", f"{f1_ml:.1%}"]
+        'ML': [f"{precision_ml:.1%}", f"{recall_ml:.1%}", f"{f1_ml:.1%}"]
     })
     
     st.dataframe(comparison, use_container_width=True, hide_index=True)
@@ -162,7 +160,7 @@ def render_comparison(df):
         marker_color='#e74c3c'
     ))
     fig.add_trace(go.Bar(
-        name='ML-Only',
+        name='ML',
         x=['Precision', 'Recall', 'F1-Score'],
         y=[precision_ml, recall_ml, f1_ml],
         marker_color='#3498db'
@@ -201,7 +199,7 @@ def render_comparison(df):
         st.caption(f"TN: {cm_rules[0,0]:,} | FP: {cm_rules[0,1]:,} | FN: {cm_rules[1,0]:,} | TP: {cm_rules[1,1]:,}")
     
     with col2:
-        st.markdown("#### ML-Only")
+        st.markdown("#### ML")
         cm_ml = confusion_matrix(y_true, y_pred_ml)
         
         fig = go.Figure(data=go.Heatmap(
@@ -309,7 +307,7 @@ def render_lookup(df):
                 
                 # ML-Based
                 with col2:
-                    st.markdown("#### 🤖 ML-Only")
+                    st.markdown("#### 🤖 ML")
                     
                     decision = "FRAUD" if txn['ml_prediction'] == 1 else "LEGITIMATE"
                     correct = txn['ml_prediction'] == txn['is_fraud']
@@ -332,7 +330,7 @@ def render_lookup(df):
 
 def render_methodology(df):
     """Methodology Tab"""
-    st.header("Methodology")
+    st.header("📚 Methodology")
     
     # Overview
     st.subheader("Project Overview")
